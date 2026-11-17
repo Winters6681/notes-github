@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>html{scroll-padding-top:0}body{margin:0}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<title>Safe When the System Deviates</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,500;0,600;1,500&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column (~66ch) with figures that widen to a lab-notebook plate; automaton notation as the visual vernacular. */
+:root {
+  --bg: #F3F5F7;
+  --surface: #FFFFFF;
+  --ink: #15202B;
+  --ink-2: #47535F;
+  --muted: #6F7B87;
+  --rule: #D3DAE1;
+  --rule-2: #E6EBF0;
+  --accent: #2D55C8;
+  --accent-soft: #8FA8EA;
+  --accent-wash: #E7EDFA;
+  --on-accent: #FFFFFF;
+  --danger: #B93C22;
+  --danger-wash: #FBE8E3;
+  --ok: #2B7448;
+  --ok-wash: #E3F1E8;
+  --warn: #8C6110;
+  --warn-wash: #F7EFDB;
+  --font-display: "Spectral", "Iowan Old Style", Georgia, serif;
+  --font-body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --radius: 10px;
+  --col: 44rem;
+  --wide: 66rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F151B; --surface: #161E26; --ink: #E5EBF1; --ink-2: #AAB6C2; --muted: #85929F;
+    --rule: #2C3743; --rule-2: #212B35; --accent: #7090E8; --accent-soft: #435C9E; --accent-wash: #1B2640;
+    --on-accent: #0F151B; --danger: #EE7B5F; --danger-wash: #3A1F18; --ok: #62C18B; --ok-wash: #16301F;
+    --warn: #E0B054; --warn-wash: #33290F; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F151B; --surface: #161E26; --ink: #E5EBF1; --ink-2: #AAB6C2; --muted: #85929F;
+  --rule: #2C3743; --rule-2: #212B35; --accent: #7090E8; --accent-soft: #435C9E; --accent-wash: #1B2640;
+  --on-accent: #0F151B; --danger: #EE7B5F; --danger-wash: #3A1F18; --ok: #62C18B; --ok-wash: #16301F;
+  --warn: #E0B054; --warn-wash: #33290F; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 17px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; line-height: 1.15; text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+p { margin: 0; }
+.mono { font-family: var(--font-mono); font-size: 0.92em; }
+sub { font-size: 0.72em; }
+
+.wrap { max-width: var(--wide); margin-inline: auto; }
+.col { max-width: var(--col); }
+
+/* top bar */
+.topbar { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: baseline; justify-content: space-between; padding-block: 20px 0; }
+.topbar .who { font-weight: 600; letter-spacing: 0.01em; }
+.topbar nav { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 0.88rem; }
+.topbar nav a { color: var(--ink-2); text-decoration: none; }
+.topbar nav a:hover { color: var(--accent); }
+
+/* hero */
+.hero { padding-block: 56px 28px; display: grid; gap: 20px; }
+.eyebrow { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.hero h1 { font-size: clamp(2.3rem, 5.6vw, 4rem); max-width: 16ch; }
+.hero h1 em { font-style: italic; font-weight: 500; color: var(--accent); }
+.lede { font-size: 1.16rem; color: var(--ink-2); max-width: 38rem; }
+.byline { font-size: 0.95rem; color: var(--ink-2); }
+
+/* sections */
+section { padding-block: 56px; border-top: 1px solid var(--rule); display: grid; gap: 24px; }
+section h2 { font-size: clamp(1.7rem, 3.4vw, 2.3rem); }
+.prose { display: grid; gap: 16px; max-width: var(--col); }
+.prose p { color: var(--ink); }
+.prose strong { font-weight: 600; }
+.venue { font-size: 0.92rem; color: var(--ink-2); font-style: italic; }
+.takeaway { border-left: 3px solid var(--accent); padding: 4px 0 4px 16px; font-family: var(--font-display); font-size: 1.22rem; line-height: 1.4; max-width: 36rem; }
+
+/* figure plates */
+.plate { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 22px; display: grid; gap: 18px; min-width: 0; }
+.plate-head { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: baseline; justify-content: space-between; }
+.plate-head h3 { font-size: 1.3rem; }
+.fig-no { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.06em; color: var(--muted); text-transform: uppercase; }
+.caption { font-size: 0.92rem; color: var(--ink-2); max-width: 46rem; }
+.small { font-size: 0.86rem; color: var(--ink-2); }
+
+/* buttons & controls */
+button { font: inherit; cursor: pointer; }
+.btn { border: 1px solid var(--rule); background: var(--surface); color: var(--ink); border-radius: 8px; padding: 8px 14px; font-size: 0.92rem; font-weight: 500; }
+.btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn.primary:hover:not(:disabled) { color: var(--on-accent); filter: brightness(1.08); }
+.btn:disabled { cursor: not-allowed; opacity: 0.55; }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; color: var(--ink-2); padding: 7px 14px; font-size: 0.88rem; font-weight: 500; }
+.seg button + button { border-left: 1px solid var(--rule); }
+.seg button[aria-pressed="true"] { background: var(--accent-wash); color: var(--accent); }
+
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: 600; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+.pill.ok { background: var(--ok-wash); color: var(--ok); }
+.pill.bad { background: var(--danger-wash); color: var(--danger); }
+.pill.warn { background: var(--warn-wash); color: var(--warn); }
+.pill.neutral { background: var(--rule-2); color: var(--ink-2); }
+
+/* ---------- Figure 1: cell simulator ---------- */
+.sim { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 22px; }
+@media (max-width: 760px) { .sim { grid-template-columns: 1fr; } }
+.floor { display: grid; gap: 14px; min-width: 0; align-content: start; }
+.stations { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: stretch; }
+.station { border: 1px solid var(--rule); border-radius: 8px; padding: 12px; display: grid; gap: 8px; align-content: start; background: var(--bg); }
+.station .name { font-size: 0.8rem; color: var(--muted); font-family: var(--font-mono); }
+.station .state { font-weight: 600; font-size: 0.95rem; }
+.belt { align-self: center; color: var(--muted); font-family: var(--font-mono); font-size: 0.8rem; text-align: center; }
+.slotrow { display: flex; gap: 6px; height: 34px; align-items: center; }
+.slot { width: 34px; height: 34px; border: 1.5px dashed var(--rule); border-radius: 6px; display: grid; place-items: center; }
+.slot.cap { border-style: solid; border-color: var(--muted); }
+.part { width: 20px; height: 20px; border-radius: 4px; background: var(--accent); transition: transform 180ms ease; }
+.part.spill { background: var(--danger); transform: rotate(18deg); }
+.station.over { border-color: var(--danger); background: var(--danger-wash); }
+.sup { display: flex; gap: 12px; align-items: center; border: 1px solid var(--rule); border-radius: 8px; padding: 10px 12px; }
+.sup .q { font-family: var(--font-mono); font-weight: 500; width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--accent); color: var(--accent); display: grid; place-items: center; flex: none; }
+.sup .t { font-size: 0.9rem; color: var(--ink-2); }
+.sup .t b { color: var(--ink); font-weight: 600; }
+.status { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 8px; font-weight: 600; font-size: 0.95rem; }
+.status.ok { background: var(--ok-wash); color: var(--ok); }
+.status.bad { background: var(--danger-wash); color: var(--danger); }
+.status.warn { background: var(--warn-wash); color: var(--warn); }
+.status .ic { font-family: var(--font-mono); width: 22px; height: 22px; border-radius: 50%; border: 2px solid currentColor; display: grid; place-items: center; font-size: 0.8rem; flex: none; }
+.status span.sub { font-weight: 400; color: var(--ink-2); }
+.trace { font-family: var(--font-mono); font-size: 0.86rem; color: var(--ink-2); min-height: 1.6em; overflow-wrap: anywhere; }
+.trace .f { color: var(--danger); text-decoration: underline wavy; text-underline-offset: 4px; }
+.controls { display: grid; gap: 14px; align-content: start; min-width: 0; }
+.events { display: grid; gap: 8px; }
+.ev { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; align-items: center; text-align: left; border: 1px solid var(--rule); background: var(--surface); color: var(--ink); border-radius: 8px; padding: 9px 12px; }
+.ev .sym { font-family: var(--font-mono); font-weight: 500; font-size: 1rem; grid-row: span 2; color: var(--accent); min-width: 3.2em; }
+.ev .lab { font-weight: 500; font-size: 0.93rem; }
+.ev .why { font-size: 0.78rem; color: var(--muted); }
+.ev:hover:not(:disabled) { border-color: var(--accent); }
+.ev:disabled { cursor: not-allowed; background: var(--bg); }
+.ev:disabled .sym { color: var(--muted); }
+.ev:disabled .lab { color: var(--muted); }
+.ev .why.blocked { color: var(--warn); }
+.faults { display: grid; gap: 8px; }
+.fault { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; align-items: start; padding: 10px 12px; border: 1px solid var(--rule); border-radius: 8px; }
+.fault input { margin-top: 4px; width: 18px; height: 18px; accent-color: var(--danger); }
+.fault .lab { font-weight: 600; font-size: 0.93rem; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+.fault .d { grid-column: 2; font-size: 0.82rem; color: var(--ink-2); }
+.fault:has(input:checked) { border-color: var(--danger); background: var(--danger-wash); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.label { font-size: 0.76rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+
+/* ---------- Problem: two gaps ---------- */
+.gaps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 680px) { .gaps { grid-template-columns: 1fr; } }
+.gap { border-top: 2px solid var(--ink); padding-top: 12px; display: grid; gap: 8px; align-content: start; }
+.gap h3 { font-size: 1.15rem; }
+.gap p { font-size: 0.95rem; color: var(--ink-2); }
+.gap .tag { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); }
+
+/* ---------- Figure 2: dataset explorer ---------- */
+.explorer { display: grid; gap: 18px; }
+.dataset { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 760px) { .dataset { grid-template-columns: 1fr; } }
+.dgroup { display: grid; gap: 8px; align-content: start; }
+.dgroup .help { font-size: 0.8rem; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { position: relative; }
+.chip input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.chip span { display: inline-block; font-family: var(--font-mono); font-size: 0.9rem; border: 1px solid var(--rule); border-radius: 6px; padding: 4px 10px; color: var(--ink-2); background: var(--surface); }
+.chip input:checked + span { background: var(--accent-wash); border-color: var(--accent); color: var(--accent); }
+.chip.neg input:checked + span { background: var(--danger-wash); border-color: var(--danger); color: var(--danger); }
+.chip input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.switch { display: flex; gap: 10px; align-items: center; font-size: 0.92rem; }
+.switch input { width: 18px; height: 18px; accent-color: var(--accent); }
+.trees { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 860px) { .trees { grid-template-columns: 1fr; } }
+.tree { border: 1px solid var(--rule); border-radius: 8px; padding: 14px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.tree.ours { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.tree h4 { margin: 0; font-size: 0.98rem; font-weight: 600; }
+.tree .who { font-size: 0.8rem; color: var(--muted); }
+.tree svg { width: 100%; height: auto; display: block; }
+.tree .count { font-size: 0.88rem; font-weight: 600; }
+.tree .count.none { color: var(--danger); }
+.tree .strs { font-family: var(--font-mono); font-size: 0.82rem; color: var(--ink-2); overflow-wrap: anywhere; }
+.order { font-size: 0.92rem; color: var(--ink-2); display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
+.order .mono { color: var(--ink); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.82rem; color: var(--ink-2); align-items: center; }
+.legend i { display: inline-block; vertical-align: -2px; margin-right: 6px; }
+.dot-on { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); }
+.dot-off { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--muted); }
+.dot-bad { width: 12px; height: 12px; border-radius: 50%; border: 1.5px dashed var(--danger); }
+.note { font-size: 0.9rem; color: var(--ink-2); background: var(--bg); border-radius: 8px; padding: 10px 12px; }
+
+/* pick and place */
+.arms { display: grid; gap: 10px; }
+.armrow { display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: 8px 14px; align-items: center; }
+@media (max-width: 560px) { .armrow { grid-template-columns: 1fr; } }
+.armrow .who { font-size: 0.9rem; font-weight: 600; }
+.lanes { display: grid; gap: 6px; }
+.lane { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 0.82rem; color: var(--muted); }
+.tok { font-family: var(--font-mono); font-size: 0.86rem; padding: 3px 9px; border-radius: 6px; background: var(--accent-wash); color: var(--accent); border: 1px solid transparent; }
+.tok.off { background: transparent; color: var(--muted); border: 1px dashed var(--rule); text-decoration: line-through; }
+.lane .arm { width: 3.6rem; color: var(--ink-2); }
+
+/* ---------- Figure 3: pipelines ---------- */
+.pipes { display: grid; gap: 18px; }
+.pipe { display: grid; gap: 8px; }
+.pipe .ttl { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.pipe .ttl b { font-weight: 600; }
+.steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; position: relative; }
+.step { border: 1px solid var(--rule); border-radius: 8px; padding: 12px; background: var(--surface); position: relative; display: grid; gap: 4px; align-content: start; }
+.step b { font-size: 0.95rem; }
+.step span { font-size: 0.84rem; color: var(--ink-2); }
+.step.end { border-color: var(--accent); background: var(--accent-wash); }
+.step:not(:last-child)::after { content: ""; position: absolute; right: -18px; top: 50%; width: 14px; height: 2px; background: var(--muted); }
+.step:not(:last-child)::before { content: ""; position: absolute; right: -19px; top: calc(50% - 4px); border: 5px solid transparent; border-left-color: var(--muted); border-right: 0; }
+.step.learned { border-style: dashed; }
+@media (max-width: 760px) {
+  .steps { grid-template-columns: 1fr; gap: 18px; }
+  .step:not(:last-child)::after { right: auto; left: 24px; top: auto; bottom: -15px; width: 2px; height: 12px; }
+  .step:not(:last-child)::before { right: auto; left: 20px; top: auto; bottom: -19px; border: 5px solid transparent; border-top-color: var(--muted); border-bottom: 0; }
+}
+
+/* ---------- Figure 4: chart ---------- */
+.chart { display: grid; gap: 4px; }
+.axis { display: grid; grid-template-columns: minmax(0, 1fr); }
+.crow { display: grid; grid-template-columns: minmax(0, 1fr) 15rem; gap: 6px 22px; align-items: center; padding-block: 12px; border-bottom: 1px solid var(--rule-2); }
+@media (max-width: 720px) { .crow { grid-template-columns: 1fr; } }
+.crow .nm { font-weight: 600; font-size: 0.95rem; grid-column: 1 / -1; }
+.track { position: relative; height: 34px; }
+.track .base { position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--rule); }
+.track .span { position: absolute; top: calc(50% - 1px); height: 2px; background: var(--muted); opacity: 0.6; }
+.mk { position: absolute; top: 50%; transform: translate(-50%, -50%); border-radius: 50%; padding: 0; border: 0; }
+.mk.full { width: 14px; height: 14px; border: 2px solid var(--muted); background: var(--surface); }
+.mk.prop { width: 16px; height: 16px; background: var(--accent-soft); box-shadow: 0 0 0 2px var(--surface); }
+.mk.feas { width: 10px; height: 10px; background: var(--accent); box-shadow: 0 0 0 2px var(--surface); }
+.mk::before { content: ""; position: absolute; inset: -10px; border-radius: 50%; }
+.ticks { position: relative; height: 22px; font-family: var(--font-mono); font-size: 0.74rem; color: var(--muted); }
+.ticks span { position: absolute; transform: translateX(-50%); top: 4px; }
+.gridl { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--rule-2); }
+.cmeta { font-size: 0.86rem; color: var(--ink-2); display: grid; gap: 2px; font-variant-numeric: tabular-nums; }
+.cmeta b { color: var(--ink); font-weight: 600; }
+.tip { position: absolute; z-index: 5; pointer-events: none; background: var(--ink); color: var(--bg); font-size: 0.8rem; padding: 6px 9px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, calc(-100% - 14px)); top: 50%; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.88rem; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--rule-2); white-space: nowrap; }
+th { font-weight: 600; color: var(--ink-2); font-size: 0.8rem; }
+td.n, th.n { text-align: right; }
+
+/* findings */
+.finds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 820px) { .finds { grid-template-columns: 1fr; } }
+.find { border-top: 2px solid var(--ink); padding-top: 12px; display: grid; gap: 8px; align-content: start; }
+.find h3 { font-size: 1.1rem; }
+.find p { font-size: 0.92rem; color: var(--ink-2); }
+.find .pills { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* next + pubs */
+.next { display: grid; gap: 10px; max-width: var(--col); padding: 0; margin: 0; list-style: none; counter-reset: n; }
+.next li { display: grid; grid-template-columns: 1.6rem minmax(0, 1fr); gap: 10px; }
+.next li::before { content: "→"; color: var(--accent); font-weight: 600; }
+.next.oneline { max-width: none; }
+@media (min-width: 1000px) { .next.oneline li { white-space: nowrap; } }
+.pubs { display: grid; gap: 18px; max-width: var(--col); padding: 0; margin: 0; list-style: none; }
+.pubs li { display: grid; gap: 4px; }
+.pubs .t { font-family: var(--font-display); font-size: 1.15rem; font-weight: 500; line-height: 1.3; }
+.pubs .a { font-size: 0.92rem; color: var(--ink-2); }
+.pubs .v { font-size: 0.88rem; color: var(--muted); }
+footer { border-top: 1px solid var(--rule); padding-block: 24px 40px; font-size: 0.85rem; color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+<style>
+/* ---------- crane walkthrough (scoped) ---------- */
+.sub { font-size: clamp(1.3rem, 2.6vw, 1.6rem); margin-top: 14px; }
+.rules { display: grid; gap: 8px; max-width: var(--col); padding: 0; margin: 0; list-style: none; }
+.rules li { border-left: 3px solid var(--ok); background: var(--ok-wash); border-radius: 0 8px 8px 0; padding: 10px 14px; display: grid; gap: 2px; }
+.rules li .label { color: var(--ok); }
+.enforce { max-width: var(--col); margin: 0; padding-left: 1.4em; display: grid; gap: 4px; }
+.trio { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr) minmax(0,1.35fr); gap: 14px; }
+@media (max-width: 760px) { .trio { grid-template-columns: minmax(0,1fr) minmax(0,1fr); } .trio .mats { grid-column: 1 / -1; } }
+.trio figure { margin: 0; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 14px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.trio figure svg { width: 100%; height: auto; display: block; }
+.trio figcaption { font-size: 0.9rem; color: var(--ink-2); display: grid; gap: 2px; }
+.trio figcaption b { color: var(--ink); font-size: 1rem; }
+.trio .cap { font-family: var(--font-mono); font-size: 0.84rem; color: var(--ink); }
+.mat { display: grid; grid-template-columns: 64px minmax(0,1fr) auto; gap: 12px; align-items: center; padding: 6px 0; }
+.mat + .mat { border-top: 1px solid var(--rule-2); }
+.mat .w { font-family: var(--font-mono); font-size: 0.9rem; }
+
+.crsvg { --lane: #EDB200; }
+.crsvg .ground { fill: var(--surface); } .crsvg .gl { stroke: var(--ink); stroke-width: 3; }
+.crsvg .mound { fill: var(--rule); opacity: .55; }
+.crsvg .zone { stroke: var(--lane); stroke-width: 4; stroke-dasharray: 10 7; }
+.crsvg .ink { fill: var(--ink); } .crsvg .grey { fill: var(--muted); stroke: var(--ink); stroke-width: 1.5; }
+.crsvg .yl { fill: var(--lane); stroke: var(--ink); stroke-width: 1.8; stroke-linejoin: round; }
+.crsvg .glass { fill: var(--accent-wash); stroke: var(--ink); stroke-width: 1.3; stroke-linejoin: round; }
+.crsvg .red { fill: var(--danger); } .crsvg .lite { fill: var(--surface); stroke: var(--ink); stroke-width: 1.5; }
+.crsvg .wheel { fill: var(--ink); } .crsvg .hub { fill: var(--rule); } .crsvg .nut { fill: var(--ink); }
+.crsvg .bO { stroke: var(--ink); stroke-linecap: round; } .crsvg .bI { stroke: var(--lane); stroke-linecap: round; }
+.crsvg .ram { stroke: var(--muted); stroke-width: 5; stroke-linecap: round; }
+.crsvg .cable { stroke: var(--ink); stroke-width: 1.6; }
+.crsvg .latO { stroke: var(--ink); stroke-width: 4.4; fill: none; stroke-linejoin: round; stroke-linecap: round; }
+.crsvg .latI { stroke: var(--lane); stroke-width: 2.4; fill: none; stroke-linejoin: round; stroke-linecap: round; }
+.crsvg .tie { stroke: var(--ink); stroke-width: 1.4; }
+.crsvg .brick { fill: #B5553C; stroke: var(--ink); stroke-width: 1.5; } .crsvg .beam { fill: var(--muted); stroke: var(--ink); stroke-width: 1.5; } .crsvg .slab { fill: var(--rule); stroke: var(--ink); stroke-width: 1.5; }
+.crsvg .dtl { stroke: var(--ink); stroke-width: 1; fill: none; }
+.crsvg .blk { fill: var(--lane); stroke: var(--ink); stroke-width: 1.3; } .crsvg .blkS { stroke: var(--ink); stroke-width: 1.6; }
+.crsvg .fade { transition: opacity .9s; opacity: 0; }
+#beacon { fill: var(--lane); stroke: var(--ink); stroke-width: 1.2; } #beacon.locked { fill: var(--danger); }
+#burst { fill: var(--danger); stroke: var(--ink); stroke-width: 1.5; opacity: 0; } #burst.on { opacity: 1; }
+#tower { opacity: 0; transition: opacity .7s; } #tower.on { opacity: 1; }
+#crane { transform-box: view-box; transform-origin: 280px 300px; transition: transform 1s cubic-bezier(.5,0,.9,.4); }
+#crane.down { transform: rotate(-34deg); }
+
+.cr-top { display: flex; gap: 10px; align-items: flex-start; justify-content: space-between; }
+.cr-top .fig-no { white-space: nowrap; flex: none; padding-top: 4px; }
+.cr-status { display: flex; gap: 10px; align-items: flex-start; font-weight: 600; min-height: 3.1em; }
+.cr-lamp { flex: none; width: 16px; height: 16px; border-radius: 50%; margin-top: 5px; background: var(--ok); }
+.cr-status[data-s="stall"] .cr-lamp { background: var(--warn); }
+.cr-status[data-s="bad"] .cr-lamp { background: var(--danger); } .cr-status[data-s="bad"] { color: var(--danger); }
+.cr-scene { background: var(--bg); border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; }
+.cr-scene svg { display: block; width: 100%; height: auto; }
+.cr-moved { text-align: right; font-size: 0.88rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.cr-gauge { display: grid; gap: 6px; font-size: 0.95rem; }
+.cr-bar { height: 12px; border: 1px solid var(--muted); border-radius: 3px; background: var(--bg); position: relative; overflow: hidden; }
+.cr-fill { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--ok); transition: width .4s; }
+.cr-fill.edge { background: var(--warn); } .cr-fill.over { background: var(--danger); }
+.cr-mark { position: absolute; top: 0; bottom: 0; left: 83.33%; width: 2px; background: var(--ink); }
+.cr-think { display: grid; gap: 8px; }
+.cr-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.cr-chip { border: 1px solid var(--rule); border-radius: 999px; padding: 4px 12px; font-size: 0.86rem; color: var(--muted); }
+.cr-chip.on { border-color: var(--accent); background: var(--accent-wash); color: var(--ink); font-weight: 600; }
+.cr-alarm { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 12px; align-items: start; border-top: 1px solid var(--rule-2); padding-top: 14px; }
+.cr-light { width: 22px; height: 22px; border-radius: 5px; border: 2px solid var(--muted); background: var(--bg); margin-top: 2px; }
+.cr-light.on { background: var(--danger); border-color: var(--danger); box-shadow: 0 0 0 4px var(--danger-wash); }
+.cr-alog { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 0.9rem; min-height: 3em; }
+.cr-alog li { color: var(--ink-2); } .cr-alog li:first-child:not(.none) { color: var(--danger); font-weight: 500; } .cr-alog li.none { color: var(--muted); }
+.cr-switches { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
+@media (max-width: 400px) { .cr-switches { grid-template-columns: 1fr; } }
+.cr-sw { display: flex; gap: 10px; align-items: flex-start; text-align: left; background: var(--surface); color: var(--ink); border: 1px solid var(--rule); border-radius: 8px; padding: 10px 12px; line-height: 1.3; }
+.cr-sw:hover { border-color: var(--accent); }
+.cr-knob { flex: none; width: 34px; height: 20px; border: 1.5px solid var(--muted); border-radius: 999px; position: relative; margin-top: 2px; }
+.cr-knob::after { content: ""; position: absolute; top: 2px; left: 2px; width: 13px; height: 13px; border-radius: 50%; background: var(--muted); transition: left .15s; }
+.cr-sw[aria-pressed="true"] { background: var(--warn-wash); border-color: var(--warn); }
+.cr-sw[aria-pressed="true"] .cr-knob { border-color: var(--warn); } .cr-sw[aria-pressed="true"] .cr-knob::after { left: 16px; background: var(--warn); }
+.cr-sw b { display: block; font-weight: 600; font-size: 0.95rem; } .cr-sw .d { font-size: 0.84rem; color: var(--ink-2); }
+
+.calc { display: grid; gap: 6px; max-width: var(--col); }
+.calc .prompt { font-size: 0.88rem; color: var(--muted); }
+.calc .box { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 14px 16px; }
+.calc input { font: inherit; font-family: var(--font-mono); width: 6.5rem; padding: 7px 10px; border: 1px solid var(--muted); border-radius: 6px; background: var(--bg); color: var(--ink); }
+.calc .out { font-family: var(--font-mono); font-size: 0.95rem; border: 1px solid var(--rule); border-radius: 6px; padding: 7px 10px; background: var(--bg); min-width: 6.5rem; max-width: 100%; overflow-wrap: anywhere; flex: 1 1 12rem; }
+.nest { display: grid; gap: 12px; }
+.nest .bar { display: flex; height: 34px; border-radius: 6px; overflow: hidden; border: 1px solid var(--ink); }
+.nest .bar div { min-width: 26px; }
+.nest .s-feas { background: var(--accent); } .nest .s-all { background: var(--ink); flex: 1 1 auto; }
+.nest ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: 0.93rem; }
+.nest li { display: grid; grid-template-columns: 14px minmax(0,1fr); gap: 10px; align-items: baseline; }
+.nest li i { width: 12px; height: 12px; border-radius: 3px; display: block; transform: translateY(1px); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="topbar">
+    <div class="who">Shih-Jie Shih</div>
+    <nav aria-label="Sections">
+      <a href="#why">Why robustness</a>
+      <a href="#neurosymbolic">Neurosymbolic</a>
+      <a href="#data-driven">Data-driven</a>
+      <a href="#robots">Robots</a>
+      <a href="#ahead">Future</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <div class="eyebrow">Supervisory control · Robustness · Model uncertainty</div>
+    <h1>Safe when the system <em>deviates</em></h1>
+  </div>
+
+  <section id="why" aria-labelledby="h-why">
+    <div class="eyebrow">Why robustness</div>
+    <h2 id="h-why">A safety certificate covers the model, not the machine</h2>
+    <div class="prose">
+      <p>From power grids and autonomous vehicles to medical devices, safety-critical systems have become an inseparable part of our lives. When they fail, the consequences are severe and often irreversible, so safety is their top priority. To guarantee it, engineers verify systems formally before they are deployed. One such method is <strong>supervisory control theory (SCT)</strong>: from a model of the system and a specification of what must never happen, it synthesizes a controller that is correct by construction.</p>
+      <p>Even with safety certification, accidents still happened.</p>
+    </div>
+
+    <div class="incidents">
+      <article class="inc">
+        <div class="yr">1985–1987</div>
+        <h3>Therac-25</h3>
+        <p>A radiation therapy machine overdosed patients, some fatally, because of a software race condition triggered by the operator's input sequence (<a href="https://doi.org/10.1109/MC.1993.274940">Leveson and Turner</a>).</p>
+        <div class="dev"><span class="label">Deviation</span><span>Human operator input</span></div>
+      </article>
+      <article class="inc">
+        <div class="yr">2018–2019</div>
+        <h3>Boeing 737 MAX</h3>
+        <p>Two crashes killed 346 people after flight-control software acted on data from a faulty angle-of-attack sensor.</p>
+        <div class="dev"><span class="label">Deviation</span><span>Sensor fault</span></div>
+      </article>
+      <article class="inc">
+        <div class="yr">2018</div>
+        <h3>Uber test vehicle</h3>
+        <p>A self-driving test car struck and killed a pedestrian in Tempe, Arizona, after its perception system failed to respond correctly.</p>
+        <div class="dev"><span class="label">Deviation</span><span>Perception error</span></div>
+      </article>
+    </div>
+
+    <div class="prose">
+      <p>These accidents point to something verification alone misses. A safety certificate is issued for the <em>model</em> that was verified. The real system can deviate from that model: hardware malfunctions, sensors are noisy, and the assumptions made while modeling do not always hold. The Therac-25 design, for example, assumed operators would follow a certain sequence of actions. Human actions are unpredictable, and sequences outside that assumption led to fatalities.</p>
+      <p>To ensure a system is safe, verification has to account for the ways it can deviate from its model. This is the question of <strong>robustness</strong>, and it is where my research lies.</p>
+    </div>
+  </section>
+
+  <section id="neurosymbolic" aria-labelledby="h-ns">
+    <div class="eyebrow">Robustness in supervisory control / Neurosymbolic robustness analysis</div>
+    <h2 id="h-ns">Which deviations a controller is robust against?</h2>
+
+    <h3 class="sub">Two cranes operating safely. Try to cause an accident.</h3>
+    <div class="prose">
+      <p>Two cranes are at a construction site. Their task is to lift and place materials. The mobile crane can lift 5 tonnes. The tower crane can lift 18 tonnes. There are three types of material: bricks, steel beams and concrete slabs. Bricks weigh 2 tonnes and a beam weighs 5 tonnes. A concrete slab weighs 8 tonnes, which would tip the mobile crane over.</p>
+    </div>
+    <ul class="rules">
+      <li><span class="label">Safety rule</span><span>When a material is over the mobile crane's capacity, the tower crane is called in to lift it.</span></li>
+      <li><span class="label">Safety rule</span><span>While the tower crane is operating, the mobile crane stands still, so that no collision can happen.</span></li>
+    </ul>
+
+    <div class="trio">
+      <figure>
+        <svg class="crsvg" viewBox="256 124 184 184" role="img" aria-label="Drawing of a wheeled mobile crane">
+          <line class="gl" x1="256" y1="300" x2="440" y2="300"/>
+          <line class="ram" x1="346" y1="254" x2="309.4" y2="196.3"/>
+          <line class="bO" stroke-width="10.4" x1="330" y1="244" x2="285.1" y2="140.3"/><line class="bI" stroke-width="7" x1="330" y1="244" x2="285.1" y2="140.3"/>
+          <line class="bO" stroke-width="13.4" x1="330" y1="244" x2="291.1" y2="154"/><line class="bI" stroke-width="10" x1="330" y1="244" x2="291.1" y2="154"/>
+          <line class="bO" stroke-width="16.4" x1="330" y1="244" x2="298.2" y2="170.6"/><line class="bI" stroke-width="13" x1="330" y1="244" x2="298.2" y2="170.6"/>
+          <line class="cable" x1="285.1" y1="140.3" x2="285.1" y2="186"/><g class="blockhere" transform="translate(285.1,200)"></g>
+          <g class="bodyhere"></g>
+        </svg>
+        <figcaption><b>Mobile crane</b><span>Wheeled, with a telescoping boom.</span><span class="cap">max capacity: 5 t</span></figcaption>
+      </figure>
+      <figure>
+        <svg class="crsvg" viewBox="494 0 184 184" role="img" aria-label="Drawing of the top of a tower crane">
+          <g class="lathere"></g>
+          <line class="tie" x1="615" y1="12" x2="300" y2="43"/><line class="tie" x1="615" y1="12" x2="462" y2="43"/><line class="tie" x1="615" y1="12" x2="664" y2="57"/>
+          <rect class="yl" x="600" y="56" width="30" height="14" rx="2"/>
+          <rect class="lite" x="640" y="62" width="11" height="22"/><rect class="lite" x="652" y="62" width="11" height="22"/>
+          <rect class="lite" x="578" y="62" width="22" height="24" rx="2"/><path class="glass" d="M581 65h10v12h-10z"/>
+          <line class="cable" x1="530" y1="66" x2="530" y2="126"/><g class="blockhere" transform="translate(530,140)"></g>
+          <rect class="ink" x="520" y="59" width="20" height="7" rx="1.5"/>
+        </svg>
+        <figcaption><b>Tower crane</b><span>Fixed mast, with a trolley that travels along the jib.</span><span class="cap">max capacity: 18 t</span></figcaption>
+      </figure>
+      <figure class="mats">
+        <div>
+          <div class="mat"><svg class="crsvg" viewBox="-32 -3 64 32" aria-hidden="true"><g class="art-L"></g></svg><span>Bricks</span><span class="w">2 t</span></div>
+          <div class="mat"><svg class="crsvg" viewBox="-32 -12 64 32" aria-hidden="true"><g class="art-M"></g></svg><span>Steel beam</span><span class="w">5 t</span></div>
+          <div class="mat"><svg class="crsvg" viewBox="-32 -3 64 32" aria-hidden="true"><g class="art-H"></g></svg><span>Concrete slab</span><span class="w">8 t</span></div>
+        </div>
+        <figcaption><b>Materials</b><span>The site never runs out of any of them.</span></figcaption>
+      </figure>
+    </div>
+
+    <div class="prose">
+      <p>A safety controller enforces these rules:</p>
+      <ol class="enforce">
+        <li>no materials are dropped from the sky,</li>
+        <li>the cranes operate within their capacity,</li>
+        <li>the cranes do not collide.</li>
+      </ol>
+      <p>If everything goes by design, no accident is possible.</p>
+    </div>
+
+    <h3 class="sub">Watch the nominal operation, then try adding glitches and see what happens</h3>
+
+    <!-- Figure 1 -->
+    <div class="plate" id="crane-figure">
+      <div class="cr-top">
+        <div class="cr-status" id="crStatus" data-s="ok" role="status" aria-live="polite"><span class="cr-lamp"></span><span id="crStatusText"></span></div>
+        <span class="fig-no">Figure 1 · try it</span>
+      </div>
+      <div class="cr-scene">
+        <svg class="crsvg" viewBox="0 0 680 340" role="img" aria-label="A mobile crane between three piles of material and a drop zone, with a tower crane that appears when it is called">
+          <path class="mound" d="M318 300L468 226q16-8 30 2l112 72z"/>
+          <rect class="ground" x="0" y="300" width="680" height="40"/>
+          <line class="gl" x1="0" y1="300" x2="680" y2="300"/>
+          <line class="zone" x1="440" y1="309" x2="584" y2="309"/>
+          <g id="piles"></g>
+          <g id="tower">
+            <rect class="grey" x="594" y="290" width="42" height="10"/>
+            <g class="lathere"></g>
+            <line class="tie" x1="615" y1="12" x2="300" y2="43"/><line class="tie" x1="615" y1="12" x2="462" y2="43"/><line class="tie" x1="615" y1="12" x2="664" y2="57"/>
+            <rect class="yl" x="600" y="56" width="30" height="14" rx="2"/>
+            <rect class="lite" x="640" y="62" width="11" height="22"/><rect class="lite" x="652" y="62" width="11" height="22"/>
+            <rect class="lite" x="578" y="62" width="22" height="24" rx="2"/><path class="glass" d="M581 65h10v12h-10z"/>
+            <g id="tsw"><line class="cable" id="tcable" x1="560" y1="66" x2="560" y2="80"/><g id="tblock" class="blockhere"></g><g id="theld"></g></g>
+            <rect class="ink" id="trolley" x="550" y="59" width="20" height="7" rx="1.5"/>
+          </g>
+          <g id="crane">
+            <g id="boom"></g>
+            <line class="cable" id="cable" x1="0" y1="0" x2="0" y2="0"/>
+            <g id="mblock" class="blockhere"></g><g id="held"></g>
+            <g class="bodyhere"></g>
+          </g>
+          <g id="drops"></g>
+          <path id="burst" d="M0-15l4 9 10-4-4 10 9 4-9 4 4 10-10-4-4 9-4-9-10 4 4-10-9-4 9-4-4-10 10 4z"/>
+        </svg>
+      </div>
+      <div class="cr-moved">Loads moved: <b id="crMoved">0</b></div>
+
+      <div class="cr-gauge">
+        <div id="crGaugeText"></div>
+        <div class="cr-bar"><div class="cr-fill" id="crGaugeFill"></div><div class="cr-mark"></div></div>
+      </div>
+
+      <div class="cr-think">
+        <div>The safety controller thinks:</div>
+        <div class="cr-chips">
+          <span class="cr-chip" id="crA">The site is clear, a lift may start</span>
+          <span class="cr-chip" id="crB">The mobile crane is carrying a load</span>
+          <span class="cr-chip" id="crC">The tower crane is working, the mobile crane stands still</span>
+        </div>
+      </div>
+
+      <div class="cr-alarm">
+        <div class="cr-light" id="crLight" role="img" aria-label="Accident warning light"></div>
+        <ol class="cr-alog" id="crAlog" aria-live="polite"><li class="none">No accidents so far.</li></ol>
+      </div>
+
+      <div class="cr-switches" id="crSwitches"></div>
+      <div class="row">
+        <button class="btn" id="crPause" aria-pressed="false">Pause</button>
+        <button class="btn" id="crReset">Reset</button>
+      </div>
+    </div>
+
+    <h3 class="sub">Have we seen all the possible accidents?</h3>
+    <div class="prose">
+      <p>Each glitch can happen on its own, or it can happen together with other glitches. The crane example has <strong>4</strong> individual glitches. If we check each and every combination of glitches, that is 2<sup>4</sup> = 16 combinations to check. In the terms of this paper, that is 2<sup>4</sup> deviations.</p>
+    </div>
+    <div class="plate nest">
+      <div class="bar" id="crNestBar" role="img" aria-label="Share of feasible deviations among all deviations"></div>
+      <ul id="crNestLegend"></ul>
+    </div>
+
+    <div class="prose">
+      <p>In real life, some deviations are impossible. This paper uses a large language model to set aside the ones that are not physically feasible. We then check whether a deviation can cause an accident. The largest set, or sets, of deviations that cause no accident is the <strong>robustness</strong> of the controller with respect to this system. With our approach, every physically feasible deviation is checked for accidents. The analysis tells us how safe our system is with the controller.</p>
+    </div>
+
+    <h3 class="sub">In this paper: a language model proposes, model checking decides</h3>
+    <p class="venue">With Jonghan Lim, Ilya Kovalenko and Rômulo Meira-Góes · <a href="https://doi.org/10.1109/WODES69290.2026.11598211">WODES 2026</a></p>
+    <div class="prose">
+      <p>In this paper, I proposed a <strong>neurosymbolic</strong> framework. A large language model reads the system models, plain-language descriptions and rules of physics, and proposes the deviations that could really happen. Model checking then computes exactly which combinations of those deviations the controller survives. The language model only chooses what to check, so the robustness result keeps its formal guarantee.</p>
+      <p>The crane site above is an illustration I made for this page. The paper's own case studies are a manufacturing cell, the Therac-25 interface and a communication protocol, shown below.</p>
+    </div>
+
+    <div class="plate">
+      <div class="plate-head">
+        <h3>How the framework works</h3>
+        <span class="fig-no">Figure 2</span>
+      </div>
+      <div class="steps">
+        <div class="step"><b>Engineer inputs</b><span>models, descriptions, rules of physics</span></div>
+        <div class="step learned"><b>Language model</b><span>proposes physically feasible deviations</span></div>
+        <div class="step"><b>Model checking</b><span>tests every combination of the proposed deviations</span></div>
+        <div class="step end"><b>Robustness</b><span>the largest deviation sets that stay safe</span></div>
+      </div>
+      <p class="caption">The dashed box is the only learned step, and it only proposes.</p>
+    </div>
+
+    <!-- Figure 3 -->
+    <div class="plate">
+      <div class="plate-head">
+        <h3>The language model shrinks the search by 67% to 99%</h3>
+        <span class="fig-no">Figure 3</span>
+      </div>
+      <p class="caption">Deviation transitions considered in each case study, on a log scale: the full space, the transitions the model proposed, and how many of those a manual check found physically feasible.</p>
+      <div class="row">
+        <div class="seg" role="group" aria-label="Language model">
+          <button type="button" data-m="gpt" aria-pressed="true">GPT-5.2</button>
+          <button type="button" data-m="claude" aria-pressed="false">Claude Sonnet 4.5</button>
+          <button type="button" data-m="both" aria-pressed="false">Proposed by both</button>
+        </div>
+        <button class="btn" id="tbl-toggle" aria-expanded="false">Show as table</button>
+      </div>
+      <div class="legend">
+        <span><i class="mk-l full"></i>All possible transitions</span>
+        <span><i class="mk-l prop"></i>Proposed by the model</span>
+        <span><i class="mk-l feas"></i>Physically feasible</span>
+      </div>
+      <div class="chart" id="chart"></div>
+      <div class="tablewrap" id="tbl" hidden></div>
+    </div>
+
+    <div class="finds">
+      <div class="find">
+        <h3>Manufacturing cell</h3>
+        <div class="pills"><span class="pill ok">Robust to 15 deviation transitions</span><span class="pill bad">Unloader sticks</span></div>
+        <p>A faulty load is harmless. A faulty unload leaves a part in the buffer, and the buffer then overflows.</p>
+      </div>
+      <div class="find">
+        <h3>Therac-25 interface</h3>
+        <div class="pills"><span class="pill ok">Repeated key presses</span><span class="pill bad">Beam-mode re-selection</span></div>
+        <p>The analysis flags mode re-selection, the race condition behind the real accidents, and clears repeated presses of enter.</p>
+      </div>
+      <div class="find">
+        <h3>Communication protocol</h3>
+        <div class="pills"><span class="pill ok">Loss, duplication, corruption</span></div>
+        <p>The Alternating Bit Protocol survives the message faults it was designed for, matching earlier robustness analyses.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="data-driven" aria-labelledby="h-dd">
+    <div class="eyebrow">Data-driven supervisory control</div>
+    <h2 id="h-dd">When there is no model, only data</h2>
+    <p class="venue">With Ilya Kovalenko and Rômulo Meira-Góes · in preparation</p>
+    <div class="prose">
+      <p>Building an accurate model of a real system is slow and labor-intensive, and sometimes it is not possible at all. What engineers often do have is data: logs of how the system has behaved. Many different models can explain the same logs, and the true system is only one of them.</p>
+      <p>I am working on synthesizing supervisors directly from such data. The goal is a supervisor that is safe for every system the data could describe, while staying as permissive as the data allow. Seen this way, learning from data becomes another robustness problem: the uncertainty is no longer a fault in a known model, but everything the data cannot rule out.</p>
+    </div>
+    <div class="flow3" aria-label="From data to a safe supervisor">
+      <div class="fbox"><span class="label">Input</span><b>Recorded behavior</b><span>what the system did, and what it can never do</span></div>
+      <div class="farrow" aria-hidden="true">→</div>
+      <div class="fbox"><span class="label">Uncertainty</span><b>Every consistent model</b><span>all systems that could have produced the data</span></div>
+      <div class="farrow" aria-hidden="true">→</div>
+      <div class="fbox end"><span class="label">Output</span><b>One supervisor</b><span>safe for all of them, and no more cautious than needed</span></div>
+    </div>
+  </section>
+
+  <section id="robots" aria-labelledby="h-robots">
+    <div class="eyebrow">Hands-on robotics</div>
+    <h2 id="h-robots">Duckiebots and ROS</h2>
+    <div class="prose">
+      <p>Alongside the theory, I work with physical robots. Duckiebots are small autonomous vehicles that run the Robot Operating System (ROS). I have used them for several projects.</p>
+    </div>
+    <div class="cards">
+      <div class="card">
+        <span class="label">Perception</span>
+        <h3>Lane detection</h3>
+        <p>Color thresholding and line detection with OpenCV turn camera images into lane-position estimates.</p>
+      </div>
+      <div class="card">
+        <span class="label">Control</span>
+        <h3>PID versus LQR</h3>
+        <p>In my master's paper, I compared PID and LQR controllers for lane following on Duckiebots, with theory and recorded experiment data.</p>
+      </div>
+      <div class="card">
+        <span class="label">Mapping</span>
+        <h3>2D SLAM</h3>
+        <p>I tried building a 2D SLAM using the camera and ToF sensor as input instead of a LiDAR. It was able to detect obstacles and create a map, but it was not a fully functional SLAM.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="ahead" aria-labelledby="h-ahead">
+    <div class="eyebrow">Looking ahead</div>
+    <h2 id="h-ahead">From theory to working demonstrations</h2>
+    <div class="prose">
+      <p>My next step is to bring the theory and the hardware together: take supervisors synthesized with formal guarantees and run them on real and simulated robots, so that their robustness can be seen, tested and measured. In our lab, that means building on a range of tools.</p>
+    </div>
+    <div class="cards">
+      <div class="card">
+        <span class="label">Manipulation</span>
+        <h3>UFactory Lite 6 robot arm</h3>
+        <p>A six-axis desktop arm for pick-and-place tasks, where supervisors decide which motions are allowed and when.</p>
+      </div>
+      <div class="card">
+        <span class="label">Simulation</span>
+        <h3>NVIDIA Isaac Sim</h3>
+        <p>Digital twins to test supervisors and inject deviations safely before anything runs on hardware.</p>
+      </div>
+      <div class="card">
+        <span class="label">Fabrication</span>
+        <h3>H2D 3D printer</h3>
+        <p>Customization for the testing environment.</p>
+      </div>
+    </div>
+    <ul class="next oneline">
+      <li>Demonstrate robust and data-driven supervisors on physical robots, not only in models.</li>
+      <li>Use simulation to inject deviations and compare predicted robustness with observed behavior.</li>
+      <li>Scale the methods toward full manufacturing systems that combine arms, mobile robots and cameras.</li>
+    </ul>
+  </section>
+
+  <section id="publications" aria-labelledby="h-pubs">
+    <div class="eyebrow">Publications</div>
+    <h2 id="h-pubs" class="sr">Publications</h2>
+    <ul class="pubs">
+      <li>
+        <a class="t" href="https://doi.org/10.1109/WODES69290.2026.11598211">NeuroSymbolic robustness analysis for discrete systems with respect to transition deviations</a>
+        <span class="a">S.-J. Shih, J. Lim, I. Kovalenko and R. Meira-Góes</span>
+        <span class="v">18th International Workshop on Discrete Event Systems (WODES), Eindhoven, 2026, pp. 151–156</span>
+      </li>
+      <li>
+        <span class="t">A paper on data-driven supervisory control</span>
+        <span class="v">In preparation</span>
+      </li>
+    </ul>
+  </section>
+
+  <section id="contact" aria-labelledby="h-contact">
+    <div class="eyebrow">Contact</div>
+    <h2 id="h-contact">Get in touch</h2>
+    <div class="contact-card">
+      <div class="crow3">
+        <span class="label">Email</span>
+        <span class="addr" id="email-addr">sfs6681@psu.edu</span>
+        <button class="btn" id="copy-email" type="button">Copy</button>
+      </div>
+      <div class="crow3">
+        <span class="label">LinkedIn</span>
+        <span class="addr">linkedin.com/in/shih-jie-s-b8ab6097</span>
+        <a class="btn" href="https://www.linkedin.com/in/shih-jie-s-b8ab6097/" rel="noopener">Open ↗</a>
+      </div>
+      <div class="crow3">
+        <span class="label">GitHub</span>
+        <span class="addr">github.com/Winters6681</span>
+        <a class="btn" href="https://github.com/Winters6681" rel="noopener">Open ↗</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>Shih-Jie Shih · Penn State · Updated November 2026</footer>
+</div>
+
+<style>
+.mk-l { display: inline-block; border-radius: 50%; vertical-align: -2px; margin-right: 6px; }
+.mk-l.full { width: 12px; height: 12px; border: 2px solid var(--muted); background: var(--surface); }
+.mk-l.prop { width: 13px; height: 13px; background: var(--accent-soft); }
+.mk-l.feas { width: 9px; height: 9px; background: var(--accent); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.hero h1 { max-width: none; white-space: nowrap; font-size: clamp(1.5rem, 6vw, 4rem); }
+
+.incidents { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 820px) { .incidents { grid-template-columns: 1fr; } }
+.inc { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 16px; display: grid; gap: 8px; align-content: start; }
+.inc .yr { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); }
+.inc h3 { font-size: 1.2rem; }
+.inc p { font-size: 0.92rem; color: var(--ink-2); }
+.inc .dev { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; border-top: 1px solid var(--rule-2); padding-top: 8px; font-size: 0.9rem; font-weight: 600; color: var(--danger); }
+
+.flow3 { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr); gap: 12px; align-items: stretch; }
+.fbox { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 14px; display: grid; gap: 4px; align-content: start; }
+.fbox b { font-size: 1rem; }
+.fbox > span:last-child { font-size: 0.88rem; color: var(--ink-2); }
+.fbox.end { border-color: var(--accent); background: var(--accent-wash); }
+.farrow { align-self: center; color: var(--muted); font-size: 1.2rem; }
+@media (max-width: 760px) {
+  .flow3 { grid-template-columns: 1fr; }
+  .farrow { justify-self: start; padding-left: 18px; transform: rotate(90deg); }
+}
+
+.contact-card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); max-width: 40rem; display: grid; }
+.crow3 { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr) auto; gap: 6px 16px; align-items: center; padding: 14px 18px; }
+.crow3 + .crow3 { border-top: 1px solid var(--rule-2); }
+.crow3 .addr { font-size: 1.02rem; font-weight: 500; overflow-wrap: anywhere; min-width: 0; }
+a.btn { text-decoration: none; display: inline-block; white-space: nowrap; }
+@media (max-width: 520px) { .crow3 { grid-template-columns: minmax(0, 1fr) auto; } .crow3 .label { grid-column: 1 / -1; } }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 820px) { .cards { grid-template-columns: 1fr; } }
+.card { border-top: 2px solid var(--ink); padding-top: 12px; display: grid; gap: 6px; align-content: start; }
+.card h3 { font-size: 1.15rem; }
+.card p { font-size: 0.93rem; color: var(--ink-2); }
+</style>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+
+  /* ---------------- Figure 5: deviation chart ---------------- */
+  const CASES = [
+    { name: 'Manufacturing cell', full: 108,
+      gpt: { p: 18, f: 16, r: '1 maximal robust set' }, claude: { p: 26, f: 14, r: 'Verification timed out after 24 h' }, both: { p: 14, f: 13 } },
+    { name: 'Therac-25 interface', full: 64,
+      gpt: { p: 9, f: 6, r: '1 maximal robust set' }, claude: { p: 21, f: 8, r: '2 maximal robust sets' }, both: { p: 6, f: 5 } },
+    { name: 'Alternating Bit Protocol', full: 2048,
+      gpt: { p: 16, f: 10, r: '2 maximal robust sets' }, claude: { p: 168, f: 60, r: 'Verification timed out after 24 h' }, both: { p: 5, f: 5 } }
+  ];
+  const LABEL = { gpt: 'GPT-5.2', claude: 'Claude Sonnet 4.5', both: 'both models' };
+  const LMAX = Math.log10(4000);
+  const X = (v) => (Math.log10(v) / LMAX) * 100;
+  const fmt = (v) => v.toLocaleString('en-US');
+  let model = 'gpt';
+
+  function render3() {
+    const chart = $('chart');
+    let h = '';
+    CASES.forEach((c) => {
+      const d = c[model];
+      const red = Math.round((1 - d.p / c.full) * 100);
+      const feasPct = Math.round((d.f / d.p) * 100);
+      const marks = [
+        { cls: 'full', v: c.full, tip: `${c.name}: ${fmt(c.full)} possible transitions` },
+        { cls: 'prop', v: d.p, tip: `Proposed by ${LABEL[model]}: ${d.p}` },
+        { cls: 'feas', v: d.f, tip: `Physically feasible: ${d.f} of ${d.p}` }
+      ];
+      h += `<div class="crow"><div class="nm">${c.name}</div>
+        <div class="track">${[1, 10, 100, 1000].map((t) => `<div class="gridl" style="left:${X(t)}%"></div>`).join('')}
+          <div class="base"></div>
+          <div class="span" style="left:${X(d.f)}%;width:${X(c.full) - X(d.f)}%"></div>
+          ${marks.map((m) => `<button type="button" class="mk ${m.cls}" style="left:${X(m.v)}%" aria-label="${m.tip}" data-tip="${m.tip}"></button>`).join('')}
+        </div>
+        <div class="cmeta"><span><b>${d.p}</b> proposed · <b>${d.f}</b> feasible (${feasPct}%)</span><span>${red}% smaller than the full space</span>${d.r ? `<span>${d.r}</span>` : ''}</div>
+      </div>`;
+    });
+    h += `<div class="crow" style="border-bottom:0;padding-block:0"><div class="ticks">${[1, 10, 100, 1000].map((t) => `<span style="left:${X(t)}%">${fmt(t)}</span>`).join('')}</div><div class="small" style="font-size:.78rem">transitions, log scale</div></div>`;
+    chart.innerHTML = h;
+    chart.querySelectorAll('.mk').forEach((b) => {
+      const showTip = () => { hideTip(); const t = document.createElement('div'); t.className = 'tip'; t.textContent = b.dataset.tip; t.style.left = b.style.left; const p = parseFloat(b.style.left); if (p > 70) t.style.transform = 'translate(-100%, calc(-100% - 14px))'; else if (p < 30) t.style.transform = 'translate(0, calc(-100% - 14px))'; b.parentElement.appendChild(t); };
+      b.addEventListener('mouseenter', showTip); b.addEventListener('focus', showTip);
+      b.addEventListener('mouseleave', hideTip); b.addEventListener('blur', hideTip);
+    });
+
+    let t = '<table><thead><tr><th>Case study</th><th class="n">Full space</th><th class="n">Proposed</th><th class="n">Feasible</th><th class="n">Reduction</th><th>Verification</th></tr></thead><tbody>';
+    CASES.forEach((c) => { const d = c[model]; t += `<tr><td>${c.name}</td><td class="n">${fmt(c.full)}</td><td class="n">${d.p}</td><td class="n">${d.f}</td><td class="n">${Math.round((1 - d.p / c.full) * 100)}%</td><td>${d.r || 'n/a'}</td></tr>`; });
+    $('tbl').innerHTML = t + '</tbody></table>';
+  }
+  function hideTip() { document.querySelectorAll('#chart .tip').forEach((x) => x.remove()); }
+
+  document.querySelectorAll('.seg button').forEach((b) => b.addEventListener('click', () => {
+    model = b.dataset.m;
+    document.querySelectorAll('.seg button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    render3();
+  }));
+  $('tbl-toggle').addEventListener('click', (e) => {
+    const t = $('tbl'); t.hidden = !t.hidden;
+    e.target.setAttribute('aria-expanded', String(!t.hidden));
+    e.target.textContent = t.hidden ? 'Show as table' : 'Hide table';
+  });
+  render3();
+
+  const copyBtn = $('copy-email');
+  copyBtn.addEventListener('click', () => {
+    const addr = $('email-addr').textContent;
+    const done = (msg) => { copyBtn.textContent = msg; setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1600); };
+    const select = () => { const r = document.createRange(); r.selectNodeContents($('email-addr')); const s = window.getSelection(); s.removeAllRanges(); s.addRange(r); done('Selected'); };
+    try { navigator.clipboard.writeText(addr).then(() => done('Copied'), select); } catch (e) { select(); }
+  });
+})();
+</script>
+
+
+<script>
+(() => {
+/* ---- two-crane site, built with the paper's definitions (design = transitions, glitch = one extra transition) ---- */
+const ST=['I','L','M','W','B'];   // Idle, mobile carrying bricks, mobile carrying a beam, tower crane carrying a slab, accident
+const ACT=['liftL','liftM','liftH','set','call','done'];
+const NOM=[['I','liftL','L'],['I','liftM','M'],['I','liftH','B'],['L','set','I'],['M','set','I'],['I','call','W'],['W','done','I'],
+  ['W','liftL','B'],['W','liftM','B'],['W','liftH','B'],['L','call','B'],['M','call','B']];
+const NOMSET=new Set(NOM.map(t=>t.join('|')));
+const DEV=[]; for(const s of ST) for(const a of ACT) for(const t of ST){const d=[s,a,t]; if(!NOMSET.has(d.join('|'))) DEV.push(d);}
+// safety controller; "done" is reported by the tower crane and cannot be blocked
+const SUP={A:{liftL:'B',liftM:'B',call:'C',done:'A'},B:{set:'A',done:'B'},C:{done:'A'}};
+const bad=s=>s==='B';
+function moves(p,s,devs){const r=[];
+  for(const t of NOM) if(t[0]===p&&SUP[s][t[1]]) r.push({a:t[1],p:t[2],s:SUP[s][t[1]],dev:-1,from:p});
+  for(const i of devs){const t=DEV[i]; if(t[0]===p&&SUP[s][t[1]]) r.push({a:t[1],p:t[2],s:SUP[s][t[1]],dev:i,from:p});}
+  return r;}
+function unsafe(devs){const seen=new Set(['I|A']),q=[['I','A']];
+  while(q.length){const [p,s]=q.shift();
+    for(const mv of moves(p,s,devs)){if(bad(mv.p))return true;const k=mv.p+'|'+mv.s;if(!seen.has(k)){seen.add(k);q.push([mv.p,mv.s]);}}}
+  return false;}
+const idx=(s,a,t)=>DEV.findIndex(d=>d[0]===s&&d[1]===a&&d[2]===t);
+const SLIPS=[idx('L','set','B'),idx('M','set','B'),idx('W','done','B')];
+// stand-in for the language model: common-sense rules for what is physically feasible
+function feasible(d,i){const [s,a,t]=d; if(bad(s)) return false;
+  if(t===s) return NOM.some(n=>n[0]===s&&n[1]===a);   // an action or signal can happen with no effect
+  if(SLIPS.includes(i)) return true;                   // a load can slip off a hook while it is being moved
+  return s==='I'&&a==='liftM'&&t==='B';}               // the load at the limit can be heavier than its label
+const FEAS=DEV.map((d,i)=>feasible(d,i)?i:-1).filter(i=>i>=0);
+
+const $=id=>document.getElementById(id);
+const AW={liftL:'The mobile crane lifts bricks.',liftM:'The mobile crane lifts a beam.',liftH:'The mobile crane lifts a slab.',set:'The mobile crane places its load.',call:'The tower crane is called for a slab.',done:'The tower crane places the slab and reports that it is done.'};
+
+/* ---------- drawing ---------- */
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const NS='http://www.w3.org/2000/svg',PIV=[330,244],GY=300,TY=95,STOW=[378,160],TPARK=560,JIB=66;
+const IT={L:{x:142,drop:560,h:24,n:2,t:2,name:'bricks'},M:{x:190,drop:512,h:9,n:3,t:5,name:'beam'},H:{x:246,drop:462,h:26,n:2,t:8,name:'slab'}};
+const ART={L:'<rect class="brick" x="-17" y="0" width="34" height="24"/><path class="dtl" d="M-17 8h34M-17 16h34M-6 0v8M6 8v8M-6 16v8"/>',
+  M:'<rect class="beam" x="-26" y="0" width="52" height="9"/><path class="dtl" d="M-26 4.5h52"/>',
+  H:'<rect class="slab" x="-20" y="0" width="40" height="26"/>'};
+const BLOCK='<rect class="blk" x="-5" y="-14" width="10" height="11" rx="1.5"/><path class="blkS" d="M-5-10l10 4M-5-6l8 3M0-3v2"/>';
+const BODY='<rect class="ink" x="276" y="274" width="8" height="21"/><rect class="ink" x="269" y="294" width="22" height="6" rx="1"/>'+
+  '<rect class="ink" x="408" y="274" width="8" height="21"/><rect class="ink" x="401" y="294" width="22" height="6" rx="1"/>'+
+  '<rect class="yl" x="284" y="262" width="142" height="15" rx="2"/><rect class="red" x="286" y="264" width="5" height="11"/><rect class="red" x="419" y="264" width="5" height="11"/>'+
+  '<path class="yl" d="M400 262v-22q0-4 4-4h15l13 15v11z"/><path class="glass" d="M405 240h12l9 11h-21z"/>'+
+  '<rect class="ink" x="318" y="256" width="40" height="6"/><rect class="grey" x="288" y="238" width="20" height="19" rx="2"/><rect class="yl" x="306" y="240" width="48" height="17" rx="2"/>'+
+  '<path class="yl" d="M352 257v-28q0-4 4-4h16q6 0 7 6l3 26z"/><path class="glass" d="M356 229h15q3 0 4 4l2 13h-21z"/>'+
+  [300,330,366,396].map(x=>'<circle class="wheel" cx="'+x+'" cy="286" r="13"/><circle class="hub" cx="'+x+'" cy="286" r="6.5"/><circle class="nut" cx="'+x+'" cy="286" r="2"/>').join('');
+const LAT=(()=>{const zig=(x1,x2,yA,yB,step)=>{let d='',up=true;for(let x=x1;x<=x2;x+=step){d+=(d?'L':'M')+x+' '+(up?yA:yB);up=!up;}return d;};
+  let mast='M606 300V58M624 300V58M606 292',l=true;for(let y=274;y>=60;y-=18){mast+='L'+(l?624:606)+' '+y;l=!l;}
+  const d=mast+'M84 58H664M110 43H606M84 58L110 43'+zig(110,606,43,58,16)+'M606 43L615 12L624 43M624 58L640 50H664V58';
+  return '<path class="latO" d="'+d+'"/><path class="latI" d="'+d+'"/>';})();
+document.querySelectorAll('.bodyhere').forEach(g=>g.innerHTML=BODY);
+document.querySelectorAll('.blockhere').forEach(g=>g.innerHTML=BLOCK);
+document.querySelectorAll('.lathere').forEach(g=>g.innerHTML=LAT);
+for(const k in ART)document.querySelectorAll('.art-'+k).forEach(g=>g.innerHTML=ART[k]);
+$('crane').querySelector('.bodyhere').insertAdjacentHTML('beforeend','<circle id="beacon" cx="364" cy="222" r="3.6"/>');
+$('piles').innerHTML=Object.keys(IT).map(k=>Array.from({length:IT[k].n},(_,j)=>'<g transform="translate('+IT[k].x+','+(GY-(j+1)*IT[k].h)+')">'+ART[k]+'</g>').join('')).join('');
+$('boom').innerHTML='<line class="ram" id="ram"/>'+[[7,0],[10,1],[13,2]].map(([w,i])=>'<line class="bO" id="bo'+i+'" stroke-width="'+(w+3.4)+'"/><line class="bI" id="bi'+i+'" stroke-width="'+w+'"/>').join('');
+const mk=k=>{const g=document.createElementNS(NS,'g');g.innerHTML=ART[k];return g;};
+const at=(g,x,y,r)=>g.setAttribute('transform','translate('+x+','+y+')'+(r?' rotate('+r+')':''));
+
+/* ---------- live site ---------- */
+let G,P,S,busy=false,halted=false,paused=false,wantReset=false,active=new Set(),moved=0,held=null,theld=null,timer=null,accidents=[],
+    load={who:'mobile',t:0};
+function render(){
+  const dx=G.tx-PIV[0],dy=PIV[1]-G.ty,len=Math.hypot(dx,dy),ux=dx/len,uy=-dy/len;
+  [len,80+(len-80)*.55,Math.min(80,len)].forEach((l,i)=>{for(const p of ['bo','bi']){const e=$(p+i);e.setAttribute('x1',PIV[0]);e.setAttribute('y1',PIV[1]);e.setAttribute('x2',PIV[0]+ux*l);e.setAttribute('y2',PIV[1]+uy*l);}});
+  const r=$('ram');r.setAttribute('x1',346);r.setAttribute('y1',254);r.setAttribute('x2',PIV[0]+ux*52);r.setAttribute('y2',PIV[1]+uy*52);
+  const c=$('cable');c.setAttribute('x1',G.tx);c.setAttribute('y1',G.ty);c.setAttribute('x2',G.tx);c.setAttribute('y2',G.hy-14);
+  at($('mblock'),G.tx,G.hy);if(held)at(held,G.tx,G.hy);
+  $('tower').classList.toggle('on',G.tower);$('trolley').setAttribute('x',G.trx-10);
+  const tc=$('tcable');tc.setAttribute('x1',G.trx);tc.setAttribute('x2',G.trx);tc.setAttribute('y2',G.thy-14);
+  at($('tblock'),G.trx,G.thy);if(theld)at(theld,G.trx,G.thy);
+  $('tsw').setAttribute('transform',G.swing?'rotate('+G.swing+' '+G.trx+' '+JIB+')':'');}
+function tween(props,ms){return new Promise(res=>{
+  if(reduce){Object.assign(G,props);render();return res();}
+  const s={...G},t0=performance.now();
+  (function f(t){const k=Math.min(1,(Math.max(t,t0)-t0)/ms),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+    for(const p in props)G[p]=s[p]+(props[p]-s[p])*e;render();k<1?requestAnimationFrame(f):res();})(t0);});}
+function fall(g,x,y0,y1,rot){$('drops').appendChild(g);return new Promise(res=>{
+  if(reduce){at(g,x,y1,rot);return res();}
+  const t0=performance.now();(function f(t){const k=Math.min(1,(Math.max(t,t0)-t0)/420);at(g,x,y0+(y1-y0)*k*k,rot*k);k<1?requestAnimationFrame(f):res();})(t0);});}
+const wait=ms=>new Promise(r=>setTimeout(r,reduce?Math.min(ms,60):ms));
+const idle=ms=>new Promise(r=>setTimeout(r,ms));
+function setStatus(s,t){$('crStatus').dataset.s=s;$('crStatusText').textContent=t;}
+function gauge(){const lim=load.who==='tower'?18:5,f=$('crGaugeFill');
+  f.style.width=Math.min(100,load.t/(lim*1.2)*100)+'%';f.className='cr-fill'+(load.t>lim?' over':load.t===lim?' edge':'');
+  $('crGaugeText').innerHTML='Load on '+load.who+' crane: <b>'+load.t.toFixed(1)+' t</b> of '+lim+' t limit';}
+function drawUI(){for(const k of 'ABC')$('cr'+k).classList.toggle('on',S===k);$('beacon').classList.toggle('locked',S==='C');$('crMoved').textContent=moved;gauge();}
+function drawLog(){$('crAlog').innerHTML=accidents.length?accidents.slice(0,4).map(a=>'<li>'+a+'</li>').join(''):'<li class="none">No accidents so far.</li>';}
+function baseStatus(){setStatus('ok',active.size?'Working, with glitches switched on.':'Working as designed. No accident is possible.');}
+function reset(){G={tx:STOW[0],ty:STOW[1],hy:200,tower:false,trx:TPARK,thy:84,swing:0};P='I';S='A';halted=false;wantReset=false;load={who:'mobile',t:0};
+  held=null;theld=null;$('held').innerHTML='';$('theld').innerHTML='';$('drops').innerHTML='';$('crane').classList.remove('down');$('burst').classList.remove('on');$('crLight').classList.remove('on');
+  clearTimeout(timer);render();baseStatus();drawUI();}
+function deliver(g,k){$('drops').appendChild(g);at(g,IT[k].drop,GY-IT[k].h);moved++;setTimeout(()=>{g.classList.add('fade');setTimeout(()=>g.remove(),1000);},900);}
+function later(ms){clearTimeout(timer);timer=setTimeout(()=>{if(halted&&!busy)reset();},ms);}
+function burstAt(x,y){at($('burst'),x,y);$('burst').classList.add('on');}
+
+async function animate(m){const a=m.a,from=m.from,to=m.p,k=a.startsWith('lift')?a.slice(4):null,slip=SLIPS.includes(m.dev);
+  if(k&&from==='W'){                                   // the mobile crane moves while the tower crane is still working
+    await tween({tx:205,ty:TY,hy:150},700);burstAt(267,172);G.swing=9;render();return;}
+  if(k){const it=IT[k],top=GY-it.n*it.h;
+    await tween({tx:it.x,ty:TY,hy:150},800);await tween({hy:top},550);
+    held=mk(k);$('held').appendChild(held);const heavy=bad(to)&&k==='M';load={who:'mobile',t:heavy?5.4:it.t};gauge();render();
+    if(bad(to)){await tween({hy:top-18},450);await wait(200);$('crane').classList.add('down');await wait(900);return;}
+    await tween({hy:190},600);return;}
+  if(a==='set'){const kk=from,it=IT[kk];
+    if(slip){const nx=kk==='L'?IT.M:IT.H,land=GY-nx.n*nx.h-it.h;await tween({tx:nx.x},450);
+      const g=held;held=null;load.t=0;gauge();render();await fall(g,nx.x,G.hy,land,kk==='L'?11:-9);burstAt(nx.x,land-6);return;}
+    await tween({tx:it.drop},1000);await tween({hy:GY-it.h},550);
+    const g=held;held=null;deliver(g,kk);load.t=0;gauge();
+    await tween({hy:150},400);await tween({tx:STOW[0],ty:STOW[1],hy:200},750);return;}
+  if(a==='call'){
+    if(to!=='W'){await wait(900);return;}
+    const it=IT.H,top=GY-it.n*it.h;G.tower=true;render();await wait(500);
+    await tween({trx:it.x},900);await tween({thy:top},650);theld=mk('H');$('theld').appendChild(theld);load={who:'tower',t:8};gauge();render();
+    await tween({thy:150},650);return;}
+  if(a==='done'){const it=IT.H;
+    if(slip){await tween({thy:118},350);const g=theld;theld=null;load.t=0;gauge();render();const land=GY-it.n*it.h-it.h;await fall(g,it.x,G.thy,land,8);burstAt(it.x,land-6);return;}
+    if(to===from||from!=='W'){await wait(900);return;}
+    await tween({thy:100},450);await tween({trx:it.drop},1100);await tween({thy:GY-it.h},650);
+    const g=theld;theld=null;deliver(g,'H');load={who:'mobile',t:0};gauge();
+    await tween({thy:84},500);await tween({trx:TPARK},600);G.tower=false;render();await wait(600);}
+}
+function describe(m){
+  if(SLIPS.includes(m.dev))return m.a==='done'?'Dropped load. The slab slipped off the tower crane\'s hook in mid-air.':'Dropped load. The '+IT[m.from].name+' slipped off the mobile crane\'s hook in mid-air.';
+  if(m.from==='W')return 'Collision. The tower crane reported that it was done while the slab was still in the air, so the controller let the mobile crane move.';
+  return 'Mobile crane tipped over. The beam weighed 5.4 t, over the 5 t capacity.';}
+async function step(){
+  const mv=moves(P,S,[...active]);
+  if(!mv.length){halted=true;setStatus('stall','Work has stopped. The controller is waiting for a tower crane that never came. No accident, so the controller is robust against this glitch. Restarting.');later(5200);return;}
+  const acts=[...new Set(mv.map(m=>m.a))],a=acts[Math.floor(Math.random()*acts.length)];
+  const dv=mv.filter(m=>m.a===a&&m.dev>=0),nm=mv.filter(m=>m.a===a&&m.dev<0);
+  const pool=dv.length&&(!nm.length||Math.random()<.5)?dv:nm,m=pool[Math.floor(Math.random()*pool.length)];
+  busy=true;P=m.p;S=m.s;
+  setStatus('ok',m.dev>=0&&!bad(P)?(m.a==='call'?'The tower crane is called, but the call is missed.':'The tower crane reports that it is done. The slab is still in the air.'):AW[m.a]);drawUI();
+  await animate(m);busy=false;
+  if(bad(P)){halted=true;const d=describe(m);accidents.unshift('#'+(accidents.length+1)+' '+d);drawLog();$('crLight').classList.add('on');setStatus('bad','Accident. '+d.split('. ')[0]+'.');later(6500);}
+  drawUI();}
+(async function loop(){for(;;){await idle(busy?120:650);if(wantReset&&!busy)reset();if(paused||halted||busy)continue;await step();}})();
+const SWITCHES=[
+  [SLIPS,'Slippery hooks','Materials could drop.'],
+  [[idx('I','liftM','B')],'Wrong weight label','A beam could weigh 5.4 t, not 5.'],
+  [[idx('W','done','W')],'Early all-clear','The tower crane could report done while still lifting.'],
+  [[idx('I','call','I')],'Missed call','The tower crane might not hear that it was called.']
+];
+$('crSwitches').innerHTML=SWITCHES.map(([d,n,t],i)=>'<button class="cr-sw" type="button" aria-pressed="false" data-i="'+i+'"><span class="cr-knob"></span><span><b>'+n+'</b><span class="d">'+t+'</span></span></button>').join('');
+$('crSwitches').addEventListener('click',e=>{const b=e.target.closest('.cr-sw');if(!b)return;const on=b.getAttribute('aria-pressed')!=='true';
+  SWITCHES[+b.dataset.i][0].forEach(i=>on?active.add(i):active.delete(i));b.setAttribute('aria-pressed',on);if(!halted&&!busy)baseStatus();});
+$('crPause').onclick=()=>{paused=!paused;$('crPause').setAttribute('aria-pressed',paused);$('crPause').textContent=paused?'Resume':'Pause';};
+$('crReset').onclick=()=>{moved=0;accidents=[];drawLog();if(busy)wantReset=true;else reset();};
+reset();
+
+const N=DEV.length;
+
+/* ---------- safe / feasible / all ---------- */
+(function(){const t0=performance.now(),n=FEAS.length;let best=0,bits=-1,robust=0;
+  for(let m=0;m<1<<n;m++){if(unsafe(FEAS.filter((_,j)=>m>>j&1)))continue;robust++;let c=0,x=m;while(x){c+=x&1;x>>=1;}if(c>bits){bits=c;best=m;}}
+  const ms=Math.max(1,Math.round(performance.now()-t0)),safe=bits,risky=n-safe,rest=N-n;
+  $('crNestBar').innerHTML='<div class="s-feas" style="flex:'+n+' 0 0"></div><div class="s-all" style="flex:'+rest+' 0 0"></div>';
+  $('crNestLegend').innerHTML=
+    '<li><i class="s-feas"></i><span><b>Feasible: '+n+' glitches.</b> The '+safe+' safe ones, plus '+risky+' that can cause an accident.</span></li>'+
+    '<li><i class="s-all"></i><span><b>All deviations: '+N+' glitches.</b> The other '+rest+' cannot happen in real life and are set aside before checking.</span></li>';
+})();
+})();
+</script>
+</body>
+</html>

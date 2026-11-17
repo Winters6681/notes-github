@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+    <channel>
+      <title>Quartz 5</title>
+      <link>https://winters6681.github.io/notes-github</link>
+      <description>Last 10 notes on Quartz 5</description>
+      <generator>Quartz -- quartz.jzhao.xyz</generator>
+      <item>
+    <title>Books</title>
+    <link>https://winters6681.github.io/notes-github/books/</link>
+    <guid>https://winters6681.github.io/notes-github/books/</guid>
+    <description><![CDATA[  ]]></description>
+    <pubDate>Tue, 17 Nov 2026 21:40:24 GMT</pubDate>
+  </item><item>
+    <title>Tag Index</title>
+    <link>https://winters6681.github.io/notes-github/tags/</link>
+    <guid>https://winters6681.github.io/notes-github/tags/</guid>
+    <description><![CDATA[  ]]></description>
+    <pubDate>Tue, 17 Nov 2026 21:40:24 GMT</pubDate>
+  </item><item>
+    <title>Research</title>
+    <link>https://winters6681.github.io/notes-github/research/</link>
+    <guid>https://winters6681.github.io/notes-github/research/</guid>
+    <description><![CDATA[  Safe When the System Deviates: research profile, edited November 15. ]]></description>
+    <pubDate>Mon, 16 Nov 2026 02:20:43 GMT</pubDate>
+  </item><item>
+    <title>Writing Science</title>
+    <link>https://winters6681.github.io/notes-github/books/writing-science</link>
+    <guid>https://winters6681.github.io/notes-github/books/writing-science</guid>
+    <description><![CDATA[  ]]></description>
+    <pubDate>Sat, 14 Nov 2026 05:16:36 GMT</pubDate>
+  </item><item>
+    <title>Welcome to Quartz 5</title>
+    <link>https://winters6681.github.io/notes-github/</link>
+    <guid>https://winters6681.github.io/notes-github/</guid>
+    <description><![CDATA[ Quartz is a fast, batteries-included static-site generator that transforms Markdown content into fully functional websites. ]]></description>
+    <pubDate>Sat, 14 Nov 2026 05:13:41 GMT</pubDate>
+  </item>
+    </channel>
+  </rss>
